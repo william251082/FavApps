@@ -1,0 +1,30 @@
+<html>
+
+<head>
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles.css') }}">
+	</head>
+
+
+<body>
+<div class = 'pane'>
+<h1>AppMakers</h1>
+
+<a href="{{url_for('newAppMakers')}}" > <h3> Create a New AppMaker </h3> </a>
+
+{% for appmaker in appmakers %}
+
+<a href = "{{url_for('showFavApps', appmaker_id = appmaker.id)}}"> <p>{{appmaker.name}}</p></a>
+
+<p><a href = "{{url_for('editAppMakers',appmaker_id = appmaker.id)}}">Edit</a></p>
+
+<p> <a href = "{{url_for('deleteAppMakers',appmaker_id = appmaker.id)}}">Delete</a> </p>
+
+
+
+
+{% endfor %}
+
+</div>
+</body>
+
+</html>

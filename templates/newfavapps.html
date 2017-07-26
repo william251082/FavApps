@@ -1,0 +1,29 @@
+<html>
+
+<head>
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles.css') }}">
+	</head>
+<body>
+
+<h1>New Fav App</h1>
+
+<form action="{{ url_for('newFavApps', appmaker_id = appmaker_id)}}" method = "POST">
+
+
+	<p>Name:</p>
+		<input type ='text' size='30' name='name'>
+	<p>Description:</p>
+		<input type ='text' size='30' name='description'>
+	<p>Price:</p>
+		<input type ='text' size='30' name='price'>
+	<p>Catch Phrase:</p>
+		<input type ='text' size='30' name='catch_phrase'>
+	</br>
+
+
+<input type='submit' value='Create'>
+
+</form>
+
+</body>
+</html>
