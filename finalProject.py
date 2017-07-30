@@ -30,6 +30,16 @@ Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
+from functools import wraps
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'username' not in login_session:
+            return redirect('/login')
+        return f(*args, **kwargs)
+    return decorated_function
+
 
 # Create anti-forgery state token
 @app.route('/login')
@@ -229,13 +239,8 @@ def createUser(login_session):
 
 
 def getUserInfo(user_id):
-    #print "user_id = %s" % user_id
-    #if session.query(User).filter_by(id=user_id).one(): 
     user = session.query(User).filter_by(id=user_id).one() 
     return user
-    #else:
-      #  user = None
-      #  return user
 
 
 def getUserID(email):
@@ -327,61 +332,58 @@ def showAppMakers():
 
 # Create new AppMaker
 @app.route('/appmaker/new/', methods=['GET', 'POST'])
+@login_required
 def newAppMakers():
     # return "This page will be for making new appmakers."
-    if 'username' not in login_session:
-        print 'User not in log in session.'
-        return redirect('/login')
+    if request.method == 'POST':
+        newAppMaker = AppMaker(
+            name=request.form['name'], user_id=login_session['user_id'])
+        session.add(newAppMaker)
+        flash('New Appmaker %s Successfully Created' % newAppMaker.name)
+        session.commit()
+        return redirect(url_for('showAppMakers'))
     else:
-        print login_session['username']
-        if request.method == 'POST':
-            newAppMaker = AppMaker(
-                name=request.form['name'], user_id=login_session['user_id'])
-            session.add(newAppMaker)
-            flash('New Appmaker %s Successfully Created' % newAppmakers.name)
-            session.commit()
-            return redirect(url_for('showAppMakers'))
-        else:
-            return render_template('newappmaker.html')
+        return render_template('newappmaker.html')
     
 # Edit an AppMaker
 @app.route('/appmaker/<int:appmaker_id>/edit/', methods=['GET', 'POST'])
+@login_required
 def editAppMakers(appmaker_id):
-    if 'username' not in login_session:
-        print 'User not in log in session.'
-        return redirect('/login')
+    editedAppMaker = session.query(AppMaker).filter_by(id=appmaker_id).one()
+    if editedAppMaker.user_id != login_session['user_id']:
+        return "<script>function myFunction() {alert(\
+                'You are not authorized to edit this appmaker. \
+                Please create your own appmaker in order to delete. \
+                ');}</script><body onload='myFunction()''>"
+    if request.method == 'POST':
+        if request.form['name']:
+            editedAppMaker.name = request.form['name']
+        return redirect(url_for('showAppMakers'))
     else:
-        editedAppMaker = session.query(
-        AppMaker).filter_by(id=appmaker_id).one()
-        if request.method == 'POST':
-            if request.form['name']:
-                editedAppMaker.name = request.form['name']
-                return redirect(url_for('showAppMakers'))
-        else:
-            return render_template(
+        return render_template(
                 'editAppMaker.html', appmaker=editedAppMaker)
     #return "This page will be editing %s" % appmaker_id
     
 # Delete an AppMaker    
 @app.route('/appmaker/<int:appmaker_id>/delete/', methods=['GET', 'POST'])
+@login_required
 def deleteAppMakers(appmaker_id):
     #return "This page will be deleting %s" % appmaker_id
-    if 'username' not in login_session:
-        print 'User not in log in session.'
-        return redirect('/login')
+    appmakerToDelete = session.query(
+    AppMaker).filter_by(id=appmaker_id).one()
+    if appmakerToDelete.user_id != login_session['user_id']:
+        return "<script>function myFunction() {alert(\
+                'You are not authorized to delete this appmaker. Please\
+                create your own appmaker in order to delete.\
+                ');}</script><body onload='myFunction()''>"
+    if request.method == 'POST':
+        session.delete(appmakerToDelete)
+        session.commit()
+        return redirect(
+        url_for('showAppMakers', appmaker_id=appmaker_id))
     else:
-        appmakerToDelete = session.query(
-        AppMaker).filter_by(id=appmaker_id).one()
-        if appmakerToDelete.user_id != login_session['user_id']:
-            return "<script>function myFunction() {alert('You are not authorized to delete this appmaker. Please create your own appmaker in order to delete.');}</script><body onload='myFunction()''>"
-        if request.method == 'POST':
-            session.delete(appmakerToDelete)
-            session.commit()
-            return redirect(
-            url_for('showAppMakers', appmaker_id=appmaker_id))
-        else:
-            return render_template(
-            'deleteappmaker.html', appmaker=appmakerToDelete)
+        return render_template(
+        'deleteappmaker.html', appmaker=appmakerToDelete)
 
 # Show FavApps
 @app.route('/appmaker/<int:appmaker_id>/')
@@ -390,7 +392,6 @@ def showFavApps(appmaker_id):
     appmaker = session.query(AppMaker).filter_by(id=appmaker_id).one()
     items = session.query(FavApps).filter_by(
         appmaker_id=appmaker_id).all()
-    print "appmaker.user_id %s" % appmaker.user_id
     creator = getUserInfo(appmaker.user_id)
     items = session.query(FavApps).filter_by(appmaker_id=appmaker_id).all()
     if 'username' not in login_session or creator.id != login_session['user_id']:
@@ -403,11 +404,9 @@ def showFavApps(appmaker_id):
 
 # Create FavApps
 @app.route('/appmaker/<int:appmaker_id>/favapp/new/', methods=['GET','POST'])
+@login_required
 def newFavApps(appmaker_id):
-    if 'username' not in login_session:
-        print 'User not in log in session.'
-        return redirect('/login')
-    appmaker = session.query(AppMakers).filter_by(id=appmaker_id).one()
+    appmaker = session.query(AppMaker).filter_by(id=appmaker_id).one()
     if request.method == 'POST':
         newItem = FavApps(name=request.form['name'], 
                     description=request.form['description'],
@@ -424,13 +423,15 @@ def newFavApps(appmaker_id):
     
 # Edit FavApps
 @app.route('/appmaker/<int:appmaker_id>/favapp/<int:favapps_id>/edit/', methods=['GET', 'POST'])
+@login_required
 def editFavApps(appmaker_id, favapps_id):
     # return "This page is for editing FavApps %s." % favapps_id
-    if 'username' not in login_session:
-        print 'User not in log in session.'
-        return redirect('/login')
-    else:
-        editedItem = session.query(FavApps).filter_by(id=favapps_id).one()
+    editedItem = session.query(FavApps).filter_by(id=favapps_id).one()
+    if editedItem.user_id != login_session['user_id']:
+        return "<script>function myFunction() {alert(\
+                'You are not authorized to edit this item. Please create \
+                your own item in order to delete.');}</script><body \
+                onload='myFunction()''>"
         if request.method == 'POST':
             if request.form['name']:
                 editedItem.name = request.form['name']
@@ -450,19 +451,21 @@ def editFavApps(appmaker_id, favapps_id):
 
 @app.route('/appmaker/<int:appmaker_id>/favapp/<int:favapps_id>/delete',
             methods = ['GET', 'POST'])
+@login_required
 def deleteFavApps(appmaker_id, favapps_id):
-    if 'username' not in login_session:
-        print 'User not in log in session.'
-        return redirect('/login')
+    itemToDelete = session.query(FavApps).filter_by(id = favapps_id).one()
+    if itemToDelete.user_id != login_session['user_id']:
+        return "<script>function myFunction() {alert(\
+                'You are not authorized to delete this item. Please create \
+                your own item in order to delete.');}</script><body \
+                onload='myFunction()''>"
+    if request.method == 'POST':
+        session.delete(itemToDelete)
+        session.commit()
+        flash("A FavApps has been deleted.")
+        return redirect(url_for('showFavApps', appmaker_id=appmaker_id))
     else:
-        itemToDelete = session.query(FavApps).filter_by(id = favapps_id).one()
-        if request.method == 'POST':
-            session.delete(itemToDelete)
-            session.commit()
-            flash("A FavApps has been deleted.")
-            return redirect(url_for('showFavApps', appmaker_id=appmaker_id))
-        else:
-            return render_template('deletefavapps.html', appmaker_id=appmaker_id, item=itemToDelete)
+        return render_template('deletefavapps.html', appmaker_id=appmaker_id, item=itemToDelete)
         
 # Disconnect based on provider
 @app.route('/disconnect')

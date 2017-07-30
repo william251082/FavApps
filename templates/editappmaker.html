@@ -7,6 +7,10 @@
 
 <body>
 
+{% extends "main.html" %}
+{% block content %}
+{% include "header.html" %}
+
 <h1> Edit App Maker </h1>
 
 
@@ -23,6 +27,8 @@
 <a href = '{{url_for('showAppMakers')}}'> Cancel </a>
 
 </form>
+
+{% endblock %}
 </body>
 
 </html>

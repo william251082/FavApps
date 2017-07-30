@@ -5,6 +5,11 @@
 	<title></title>
 </head>
 <body>
+
+{% extends "main.html" %}
+{% block content %}
+{% include "header.html" %}
+
 	<div class='pane'>
 		<h1>{{ appmaker.name }}</h1>
 
@@ -59,5 +64,6 @@
 		<p><a href="{{url_for('newFavApps',appmaker_id=appmaker.id)}}">Create New FavApp</a></p>
 			{% endif %}
 	</div>
+{% endblock %}
 </body>
 </html>

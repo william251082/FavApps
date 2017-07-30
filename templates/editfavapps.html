@@ -4,7 +4,13 @@
 <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles.css') }}">
 	</head>
 
-<body><h1> Edit Favorite Apps Info </h1>
+<body>
+
+{% extends "main.html" %}
+{% block content %}
+{% include "header.html" %}
+
+<h1> Edit Favorite Apps Info </h1>
 
 <form action="{{ url_for('editFavApps', appmaker_id = item.appmaker_id, favapps_id=item.id)}}" method = "POST">
 
@@ -26,6 +32,8 @@
 
 
 </form>
+{% endblock %}
+
 </body>
 </html>
 

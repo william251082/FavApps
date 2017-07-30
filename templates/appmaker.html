@@ -6,6 +6,11 @@
 
 
 <body>
+
+{% extends "main.html" %}
+{% block content %}
+{% include "header.html" %}
+
 <div class = 'pane'>
 <h1>AppMakers</h1>
 
@@ -24,7 +29,9 @@
 
 {% endfor %}
 
-</div>
+	</div>
+{% endblock %}
+
 </body>
 
 </html>

@@ -14,7 +14,10 @@
 </head>
 
 
-<body>  
+<body> 
+{% extends "main.html" %}
+{% block content %}
+{% include "header.html" %}
 
 
 <!-- GOOGLE PLUS SIGN IN BUTTON-->
@@ -132,7 +135,7 @@ function signInCallback(authResult) {
 
         </button>
 <!--END FACEBOOK SIGN IN -->
-
+{% endblock %}
   </body>
 
   </html>

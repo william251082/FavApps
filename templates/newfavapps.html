@@ -5,6 +5,10 @@
 	</head>
 <body>
 
+{% extends "main.html" %}
+{% block content %}
+{% include "header.html" %}
+
 <h1>New Fav App</h1>
 
 <form action="{{ url_for('newFavApps', appmaker_id = appmaker_id)}}" method = "POST">
@@ -24,6 +28,6 @@
 <input type='submit' value='Create'>
 
 </form>
-
+{% endblock %}
 </body>
 </html>

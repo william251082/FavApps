@@ -3,6 +3,11 @@
 	</head>
 	
 <body>
+
+{% extends "main.html" %}
+{% block content %}
+{% include "header.html" %}
+
 <h1> Are you sure you want to delete {{item.name}}? </h1>
 
 <form action="{{ url_for('deleteFavApps', appmaker_id = item.appmaker_id, favapps_id=item.id)}}" method = "POST">
@@ -13,6 +18,7 @@
 </form>
 
 <a href = "{{ url_for('showFavApps', appmaker_id = appmaker_id, favapps_id=item.id)}}"> Cancel </a>
+{% endblock %}
 </body>
 
 </html>
