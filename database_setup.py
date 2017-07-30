@@ -12,6 +12,7 @@ Base = declarative_base()
 # A User can create an AppMaker and create sub-categories of its Apps
 # Learn Jinja
 
+
 class User(Base):
     __tablename__ = 'user'
 
@@ -28,7 +29,7 @@ class AppMaker(Base):
     name = Column(String(250), nullable=False)
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship(User)
-    
+
     @property
     def serialize(self):
         """Return object data in easily serializeable format"""
@@ -36,7 +37,6 @@ class AppMaker(Base):
             'name': self.name,
             'id': self.id,
         }
-
 
 
 class FavApps(Base):
@@ -51,7 +51,6 @@ class FavApps(Base):
     appmaker = relationship(AppMaker)
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship(User)
-    
 
     @property
     def serialize(self):
